@@ -18,6 +18,7 @@ import com.synap.pay.model.payment.SynapCardStorage;
 import com.synap.pay.model.payment.SynapCountry;
 import com.synap.pay.model.payment.SynapCurrency;
 import com.synap.pay.model.payment.SynapDocument;
+import com.synap.pay.model.payment.SynapExpiration;
 import com.synap.pay.model.payment.SynapFeatures;
 import com.synap.pay.model.payment.SynapOrder;
 import com.synap.pay.model.payment.SynapPerson;
@@ -33,12 +34,15 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private SynapPayButton paymentWidget;
     private FrameLayout synapForm;
-    private Button synapButton;
+    /*private Button synapButton;*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         synapForm = findViewById(R.id.synapForm);
         synapForm.setVisibility(View.GONE);
 
-        // Asocie y oculte el botón de pago (Button), hasta que se ejecute la acción de continuar al pago
+        /*// Asocie y oculte el botón de pago (Button), hasta que se ejecute la acción de continuar al pago
         synapButton=findViewById(R.id.synapButton);
         synapButton.setVisibility(View.GONE);
         synapButton.setOnClickListener(new View.OnClickListener() {
@@ -57,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 paymentWidget.pay();
             }
-        });
+        });*/
 
         // Asocie el botón de continuar al pago (Button)
         Button startPayment=findViewById(R.id.startPaymentButton);
@@ -73,16 +77,16 @@ public class MainActivity extends AppCompatActivity {
         // Muestre el contenedor del formulario de pago
         synapForm.setVisibility(View.VISIBLE);
 
-        // Muestre el botón de pago
-        synapButton.setVisibility(View.VISIBLE);
+        /*// Muestre el botón de pago
+        synapButton.setVisibility(View.VISIBLE);*/
 
         // Crea el objeto del widget de pago
         this.paymentWidget=SynapPayButton.create(synapForm);
 
-        // Tema de fondo en la tarjeta (Light o Dark)
+        /*// Tema de fondo en la tarjeta (Light o Dark)
         SynapTheme theme = new SynapLightTheme(); // Fondo Light con controles dark
         //SynapTheme theme = new SynapDarkTheme(); // Fondo Dark con controles light
-        SynapPayButton.setTheme(theme);
+        SynapPayButton.setTheme(theme);*/
 
         // Seteo del ambiente ".SANDBOX" o ".PRODUCTION"
         SynapPayButton.setEnvironment(SynapPayButton.Environment.SANDBOX);
@@ -91,9 +95,10 @@ public class MainActivity extends AppCompatActivity {
         SynapTransaction transaction=this.buildTransaction();
 
         // Seteo de los campos de autenticación de seguridad
-        SynapAuthenticator authenticator=this.buildAuthenticator(transaction);
+        //SynapAuthenticator authenticator=this.buildAuthenticator(transaction);
+        SynapAuthenticator authenticator=this.buildAuthenticatorOnBehalf(transaction);
 
-        // Control de eventos en el formulario de pago
+        /*// Control de eventos en el formulario de pago
         SynapPayButton.setListener(new EventHandler() {
             @Override
             public void onEvent(SynapPayButton.Events event) {
@@ -111,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             }
-        });
+        });*/
 
         this.paymentWidget.configure(
                 // Seteo de autenticación de seguridad y transacción
@@ -123,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void success(SynapAuthorizeResponse response) {
                         Looper.prepare();
-                        boolean resultAccepted=response.getResult().getAccepted();
+                        /*boolean resultAccepted=response.getResult().getAccepted();
                         String resultMessage=response.getResult().getMessage();
                         if (resultAccepted) {
                             // Agregue el código según la experiencia del cliente para la autorización
@@ -132,7 +137,10 @@ public class MainActivity extends AppCompatActivity {
                         else {
                             // Agregue el código según la experiencia del cliente para la denegación
                             showMessage(resultMessage);
-                        }
+                        }*/
+                        String messageText=response.getResult().getMessage();
+                        String code=response.getResult().getProcessorResult().getPaymentCode().getCode();
+                        showMessage(messageText+": "+code);
                         Looper.loop();
                     }
                     @Override
@@ -145,9 +153,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-        Button paymentButton;
+        /*Button paymentButton;
         paymentButton=findViewById(R.id.synapButton);
-        paymentButton.setVisibility(View.VISIBLE);
+        paymentButton.setVisibility(View.VISIBLE);*/
     }
 
     private SynapTransaction buildTransaction(){
@@ -234,6 +242,8 @@ public class MainActivity extends AppCompatActivity {
         settings.setBrands(Arrays.asList(new String[]{"VISA","MSCD","AMEX","DINC"}));
         settings.setLanguage("es_PE");
         settings.setBusinessService("MOB");
+        settings.getExpiration().setDate("2021-06-01T09:00:00.000-0500");
+
 
         // Referencie al objeto transacción
         SynapTransaction transaction=new SynapTransaction();
@@ -241,12 +251,12 @@ public class MainActivity extends AppCompatActivity {
         transaction.setOrder(order);
         transaction.setSettings(settings);
 
-        // Feature Card-Storage (Recordar Tarjeta)
+        /*// Feature Card-Storage (Recordar Tarjeta)
         SynapFeatures features=new SynapFeatures();
         SynapCardStorage cardStorage=new SynapCardStorage();
         cardStorage.setUserIdentifier("javier.perez@synapsolutions.com");
         features.setCardStorage(cardStorage);
-        transaction.setFeatures(features);
+        transaction.setFeatures(features);*/
 
         return transaction;
     }
@@ -272,6 +282,35 @@ public class MainActivity extends AppCompatActivity {
         return authenticator;
     }
 
+    private SynapAuthenticator buildAuthenticatorOnBehalf(SynapTransaction transaction){
+        String apiKey="5725e76a-1dd4-448c-8530-f7b1f3eb368b";
+
+        // La signatureKey y la función de generación de firma debe usarse e implementarse en el servidor del comercio utilizando la función criptográfica SHA-512
+        // solo con propósito de demostrar la funcionalidad, se implementará en el ejemplo
+        // (bajo ninguna circunstancia debe exponerse la signatureKey y la función de firma desde la aplicación porque compromete la seguridad)
+        String signatureKey="DzW/HDawaiwZ@OShFbbAWmcx0c3Aw217";
+
+        // El onBehalf se utiliza cuando se necesite agrupar sub comercios con un único comercio de integración
+        // donde el valor de onBehalf corresponda a cada "identificador" de los subcomercios
+        String onBehalf="cf747220-b471-4439-9130-d086d4ca83d4";
+
+        String signature=generateSignature(transaction,apiKey,signatureKey);
+
+        // Referencie el objeto de autenticación
+        SynapAuthenticator authenticator=new SynapAuthenticator();
+
+        // Seteo de identificador del comercio (apiKey)
+        authenticator.setIdentifier(apiKey);
+
+        // Seteo de firma, que permite verificar la integridad de la transacción
+        authenticator.setSignature(signature);
+
+        // Seteo de onBehalf, que permite identificar las transacciones de los subcomercios
+        authenticator.setOnBehalf(onBehalf);
+
+        return authenticator;
+    }
+
     // Muestra el mensaje de respuesta
     private void showMessage(String message){
         AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
@@ -288,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 synapForm.setVisibility(View.GONE);
-                                synapButton.setVisibility(View.GONE);
+                                /*synapButton.setVisibility(View.GONE);*/
                             }
                         });
                         dialog.cancel();
