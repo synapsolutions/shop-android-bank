@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
     private SynapPayButton paymentWidget;
     private FrameLayout synapForm;
-    /*private Button synapButton;*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +51,6 @@ public class MainActivity extends AppCompatActivity {
         // Asocie y oculte el contenedor del formulario de pago (FrameLayout), hasta que se ejecute la acción de continuar al pago
         synapForm = findViewById(R.id.synapForm);
         synapForm.setVisibility(View.GONE);
-
-        /*// Asocie y oculte el botón de pago (Button), hasta que se ejecute la acción de continuar al pago
-        synapButton=findViewById(R.id.synapButton);
-        synapButton.setVisibility(View.GONE);
-        synapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                paymentWidget.pay();
-            }
-        });*/
 
         // Asocie el botón de continuar al pago (Button)
         Button startPayment=findViewById(R.id.startPaymentButton);
@@ -77,16 +66,8 @@ public class MainActivity extends AppCompatActivity {
         // Muestre el contenedor del formulario de pago
         synapForm.setVisibility(View.VISIBLE);
 
-        /*// Muestre el botón de pago
-        synapButton.setVisibility(View.VISIBLE);*/
-
         // Crea el objeto del widget de pago
-        this.paymentWidget=SynapPayButton.create(synapForm);
-
-        /*// Tema de fondo en la tarjeta (Light o Dark)
-        SynapTheme theme = new SynapLightTheme(); // Fondo Light con controles dark
-        //SynapTheme theme = new SynapDarkTheme(); // Fondo Dark con controles light
-        SynapPayButton.setTheme(theme);*/
+        this.paymentWidget=SynapPayButton.createWithBanks(synapForm);
 
         // Seteo del ambiente ".SANDBOX" o ".PRODUCTION"
         SynapPayButton.setEnvironment(SynapPayButton.Environment.SANDBOX);
@@ -95,28 +76,7 @@ public class MainActivity extends AppCompatActivity {
         SynapTransaction transaction=this.buildTransaction();
 
         // Seteo de los campos de autenticación de seguridad
-        //SynapAuthenticator authenticator=this.buildAuthenticator(transaction);
-        SynapAuthenticator authenticator=this.buildAuthenticatorOnBehalf(transaction);
-
-        /*// Control de eventos en el formulario de pago
-        SynapPayButton.setListener(new EventHandler() {
-            @Override
-            public void onEvent(SynapPayButton.Events event) {
-                Button paymentButton;
-                switch (event){
-                    case START_PAY:
-                        paymentButton=findViewById(R.id.synapButton);
-                        paymentButton.setVisibility(View.GONE);
-                        break;
-                    case INVALID_CARD_FORM:
-                        paymentButton=findViewById(R.id.synapButton);
-                        paymentButton.setVisibility(View.VISIBLE);
-                        break;
-                    case VALID_CARD_FORM:
-                        break;
-                }
-            }
-        });*/
+        SynapAuthenticator authenticator=this.buildAuthenticator(transaction);
 
         this.paymentWidget.configure(
                 // Seteo de autenticación de seguridad y transacción
@@ -128,16 +88,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void success(SynapAuthorizeResponse response) {
                         Looper.prepare();
-                        /*boolean resultAccepted=response.getResult().getAccepted();
-                        String resultMessage=response.getResult().getMessage();
-                        if (resultAccepted) {
-                            // Agregue el código según la experiencia del cliente para la autorización
-                            showMessage(resultMessage);
-                        }
-                        else {
-                            // Agregue el código según la experiencia del cliente para la denegación
-                            showMessage(resultMessage);
-                        }*/
                         String messageText=response.getResult().getMessage();
                         String code=response.getResult().getProcessorResult().getPaymentCode().getCode();
                         showMessage(messageText+": "+code);
@@ -153,9 +103,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-        /*Button paymentButton;
-        paymentButton=findViewById(R.id.synapButton);
-        paymentButton.setVisibility(View.VISIBLE);*/
     }
 
     private SynapTransaction buildTransaction(){
@@ -242,8 +189,10 @@ public class MainActivity extends AppCompatActivity {
         settings.setBrands(Arrays.asList(new String[]{"VISA","MSCD","AMEX","DINC"}));
         settings.setLanguage("es_PE");
         settings.setBusinessService("MOB");
-        settings.getExpiration().setDate("2021-06-01T09:00:00.000-0500");
 
+        // Seteo de la fecha de expiración
+        settings.setExpiration(new SynapExpiration());
+        settings.getExpiration().setDate("2021-06-01T23:59:59.000Z");
 
         // Referencie al objeto transacción
         SynapTransaction transaction=new SynapTransaction();
@@ -251,48 +200,21 @@ public class MainActivity extends AppCompatActivity {
         transaction.setOrder(order);
         transaction.setSettings(settings);
 
-        /*// Feature Card-Storage (Recordar Tarjeta)
-        SynapFeatures features=new SynapFeatures();
-        SynapCardStorage cardStorage=new SynapCardStorage();
-        cardStorage.setUserIdentifier("javier.perez@synapsolutions.com");
-        features.setCardStorage(cardStorage);
-        transaction.setFeatures(features);*/
-
         return transaction;
     }
 
     private SynapAuthenticator buildAuthenticator(SynapTransaction transaction){
-        String apiKey="ab254a10-ddc2-4d84-8f31-d3fab9d49520";
+        String apiKey="ab254a10-ddc2-4d84-8f31-d3fab9d49520"; //"4b099994-a876-4bbd-9ede-3c7115de0b7a"; //"5725e76a-1dd4-448c-8530-f7b1f3eb368b";
 
         // La signatureKey y la función de generación de firma debe usarse e implementarse en el servidor del comercio utilizando la función criptográfica SHA-512
         // solo con propósito de demostrar la funcionalidad, se implementará en el ejemplo
         // (bajo ninguna circunstancia debe exponerse la signatureKey y la función de firma desde la aplicación porque compromete la seguridad)
-        String signatureKey="eDpehY%YPYgsoludCSZhu*WLdmKBWfAo";
-        String signature=generateSignature(transaction,apiKey,signatureKey);
+        String signatureKey="eDpehY%YPYgsoludCSZhu*WLdmKBWfAo"; //"Q1nPLoVPn@46cwmduy&%tZUWiLOovstc"; //"DzW/HDawaiwZ@OShFbbAWmcx0c3Aw217";
 
-        // Referencie el objeto de autenticación
-        SynapAuthenticator authenticator=new SynapAuthenticator();
-
-        // Seteo de identificador del comercio (apiKey)
-        authenticator.setIdentifier(apiKey);
-
-        // Seteo de firma, que permite verificar la integridad de la transacción
-        authenticator.setSignature(signature);
-
-        return authenticator;
-    }
-
-    private SynapAuthenticator buildAuthenticatorOnBehalf(SynapTransaction transaction){
-        String apiKey="5725e76a-1dd4-448c-8530-f7b1f3eb368b";
-
-        // La signatureKey y la función de generación de firma debe usarse e implementarse en el servidor del comercio utilizando la función criptográfica SHA-512
-        // solo con propósito de demostrar la funcionalidad, se implementará en el ejemplo
-        // (bajo ninguna circunstancia debe exponerse la signatureKey y la función de firma desde la aplicación porque compromete la seguridad)
-        String signatureKey="DzW/HDawaiwZ@OShFbbAWmcx0c3Aw217";
-
-        // El onBehalf se utiliza cuando se necesite agrupar sub comercios con un único comercio de integración
-        // donde el valor de onBehalf corresponda a cada "identificador" de los subcomercios
-        String onBehalf="cf747220-b471-4439-9130-d086d4ca83d4";
+        // El campo onBehalf es opcional y se usa cuando un comercio agrupa otros sub comercios
+        // la conexión con cada sub comercio se realiza con las credenciales del comercio agrupador
+        // y enviando el identificador del sub comercio en el campo onBehalf
+        //String onBehalf="cf747220-b471-4439-9130-d086d4ca83d4";
 
         String signature=generateSignature(transaction,apiKey,signatureKey);
 
@@ -306,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         authenticator.setSignature(signature);
 
         // Seteo de onBehalf, que permite identificar las transacciones de los subcomercios
-        authenticator.setOnBehalf(onBehalf);
+        //authenticator.setOnBehalf(onBehalf);
 
         return authenticator;
     }
@@ -326,8 +248,7 @@ public class MainActivity extends AppCompatActivity {
                         looper.post(new Runnable() {
                             @Override
                             public void run() {
-                                synapForm.setVisibility(View.GONE);
-                                /*synapButton.setVisibility(View.GONE);*/
+                                synapForm.setVisibility(View.VISIBLE);
                             }
                         });
                         dialog.cancel();

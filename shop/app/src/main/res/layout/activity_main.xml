@@ -12,7 +12,7 @@
         android:layout_height="500dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,7 +22,7 @@
 
     </FrameLayout>
 
-    <Button
+    <!--<Button
         android:id="@+id/synapButton"
         android:layout_width="432dp"
         android:layout_height="75dp"
@@ -37,7 +37,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.523"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/synapForm" />
+        app:layout_constraintTop_toBottomOf="@+id/synapForm" />-->
 
     <Button
         android:id="@+id/startPaymentButton"
