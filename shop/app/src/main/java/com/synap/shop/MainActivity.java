@@ -21,6 +21,8 @@ import com.synap.pay.model.payment.SynapDocument;
 import com.synap.pay.model.payment.SynapExpiration;
 import com.synap.pay.model.payment.SynapFeatures;
 import com.synap.pay.model.payment.SynapOrder;
+import com.synap.pay.model.payment.SynapPayment;
+import com.synap.pay.model.payment.SynapPaymentCode;
 import com.synap.pay.model.payment.SynapPerson;
 import com.synap.pay.model.payment.SynapProduct;
 import com.synap.pay.model.payment.SynapSettings;
@@ -88,9 +90,25 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void success(SynapAuthorizeResponse response) {
                         Looper.prepare();
-                        String messageText=response.getResult().getMessage();
-                        String code=response.getResult().getProcessorResult().getPaymentCode().getCode();
-                        showMessage(messageText+": "+code);
+                        boolean resultSuccess = response.getSuccess();
+                        if (resultSuccess) {
+                            boolean resultAccepted=response.getResult().getAccepted();
+                            String messageText=response.getResult().getMessage();
+                            if (resultAccepted) {
+                                // Agregue el código según la experiencia del cliente para la autorización
+                                String paymentCode=response.getResult().getProcessorResult().getPaymentCode().getCode();
+                                showMessage(messageText+" - Código: "+paymentCode);
+                            }
+                            else {
+                                // Agregue el código según la experiencia del cliente para la denegación
+                                showMessage(messageText);
+                            }
+                        }
+                        else {
+                            String messageText=response.getMessage().getText();
+                            // Agregue el código de la experiencia que desee visualizar en un error
+                            showMessage(messageText);
+                        }
                         Looper.loop();
                     }
                     @Override
@@ -106,19 +124,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private SynapTransaction buildTransaction(){
-        // Genere el número de orden, este es solo un ejemplo
+        // Genere el número de orden (este es solo un ejemplo)
         String number=String.valueOf(System.currentTimeMillis());
 
         // Seteo de los datos de transacción
         // Referencie al objeto país
         SynapCountry country=new SynapCountry();
         // Seteo del código de país
-        country.setCode("PER");
+        country.setCode("PER"); // Código de País (ISO 3166-2)
 
         // Referencie al objeto moneda
         SynapCurrency currency=new SynapCurrency();
         // Seteo del código de moneda
-        currency.setCode("PEN");
+        currency.setCode("PEN"); // Código de Moneda - Alphabetic code (ISO 4217)
 
         //Seteo del monto
         String amount="1.00";
@@ -132,13 +150,13 @@ public class MainActivity extends AppCompatActivity {
         // Referencie al objeto dirección del cliente
         SynapAddress address=new SynapAddress();
         // Seteo del pais (country), niveles de ubicación geográfica (levels), dirección (line1 y line2) y código postal (zip)
-        address.setCountry("PER");
+        address.setCountry("PER"); // Código de País del cliente (ISO 3166-2)
         address.setLevels(new ArrayList<String>());
-        address.getLevels().add("150000");
-        address.getLevels().add("150100");
-        address.getLevels().add("150101");
-        address.setLine1("Ca Carlos Ferreyros 180");
-        address.setZip("15036");
+        address.getLevels().add("150000"); // Código de Área (Ubigeo - Departamento)
+        address.getLevels().add("150100"); // Código de Área (Ubigeo - Provincia)
+        address.getLevels().add("150101"); // Código de Área (Ubigeo - Distrito)
+        address.setLine1("Ca Carlos Ferreyros 180"); // Dirección
+        address.setZip("15036"); // Código Postal
         customer.setAddress(address);
 
         // Seteo del email y teléfono
@@ -148,23 +166,23 @@ public class MainActivity extends AppCompatActivity {
         // Referencie al objeto documento del cliente
         SynapDocument document=new SynapDocument();
         // Seteo del tipo y número de documento
-        document.setType("DNI");
+        document.setType("DNI"); // [ DNI: Documento de identidad, CE: Carné de extranjería, PAS: Pasaporte, RUC: Registro único de contribuyente ]
         document.setNumber("44556677");
         customer.setDocument(document);
 
         // Seteo de los datos de envío
-        SynapPerson shipping=customer;
+        SynapPerson shipping=customer; // Opcional, misma estructura que "customer"
         // Seteo de los datos de facturación
-        SynapPerson billing=customer;
+        SynapPerson billing=customer; // Opcional, misma estructura que "customer"
 
         // Referencie al objeto producto
         SynapProduct productItem=new SynapProduct();
         // Seteo de los datos de producto
-        productItem.setCode("123");
+        productItem.setCode("123"); // Opcional
         productItem.setName("Llavero");
-        productItem.setQuantity("1");
-        productItem.setUnitAmount("1.00");
-        productItem.setAmount("1.00");
+        productItem.setQuantity("1"); // Opcional
+        productItem.setUnitAmount("1.00"); // Opcional
+        productItem.setAmount("1.00"); // Opcional
 
         // Referencie al objeto lista producto
         List<SynapProduct> products=new ArrayList<>();
@@ -183,22 +201,30 @@ public class MainActivity extends AppCompatActivity {
         order.setShipping(shipping);
         order.setBilling(billing);
 
+        // Referencia al objeto pago
+        SynapPayment payment=new SynapPayment();
+        // Seteo de los datos de procesador
+        SynapPaymentCode paymentCode=new SynapPaymentCode();
+        paymentCode.setProcessorCode("KASHIO"); // [ KASHIO, PAGOEFECTIVO ]
+        payment.setPaymentCode(paymentCode);
+
         // Referencie al objeto configuración
         SynapSettings settings=new SynapSettings();
         // Seteo de los datos de configuración
-        settings.setBrands(Arrays.asList(new String[]{"VISA","MSCD","AMEX","DINC"}));
+        settings.setBrands(Arrays.asList(new String[]{"BANKS"}));
         settings.setLanguage("es_PE");
         settings.setBusinessService("MOB");
 
         // Seteo de la fecha de expiración
         settings.setExpiration(new SynapExpiration());
-        settings.getExpiration().setDate("2021-06-01T23:59:59.000Z");
+        settings.getExpiration().setDate("2022-07-31T23:59:59.000Z"); // Máximo de 6 meses
 
         // Referencie al objeto transacción
         SynapTransaction transaction=new SynapTransaction();
         // Seteo de los datos de transacción
         transaction.setOrder(order);
         transaction.setSettings(settings);
+        transaction.setPayment(payment);
 
         return transaction;
     }
