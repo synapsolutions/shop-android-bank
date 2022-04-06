@@ -20,6 +20,7 @@ import com.synap.pay.model.payment.SynapCurrency;
 import com.synap.pay.model.payment.SynapDocument;
 import com.synap.pay.model.payment.SynapExpiration;
 import com.synap.pay.model.payment.SynapFeatures;
+import com.synap.pay.model.payment.SynapMetadata;
 import com.synap.pay.model.payment.SynapOrder;
 import com.synap.pay.model.payment.SynapPayment;
 import com.synap.pay.model.payment.SynapPaymentCode;
@@ -93,15 +94,15 @@ public class MainActivity extends AppCompatActivity {
                         boolean resultSuccess = response.getSuccess();
                         if (resultSuccess) {
                             boolean resultAccepted=response.getResult().getAccepted();
-                            String messageText=response.getResult().getMessage();
+                            String resultMessage=response.getResult().getMessage();
                             if (resultAccepted) {
                                 // Agregue el código según la experiencia del cliente para la autorización
                                 String paymentCode=response.getResult().getProcessorResult().getPaymentCode().getCode();
-                                showMessage(messageText+" - Código: "+paymentCode);
+                                showMessage(resultMessage+" - Código: "+paymentCode);
                             }
                             else {
                                 // Agregue el código según la experiencia del cliente para la denegación
-                                showMessage(messageText);
+                                showMessage(resultMessage);
                             }
                         }
                         else {
@@ -189,6 +190,17 @@ public class MainActivity extends AppCompatActivity {
         // Seteo de los datos de lista de producto
         products.add(productItem);
 
+        // Referencie al objeto metadata - Opcional
+        SynapMetadata metadataItem=new SynapMetadata();
+        // Seteo de los datos de metadata
+        metadataItem.setName("name1");
+        metadataItem.setValue("value1");
+
+        // Referencie al objeto lista de metadata - Opcional
+        List<SynapMetadata> metadataList=new ArrayList<>();
+        // Seteo de los datos de lista de metadata
+        metadataList.add(metadataItem);
+
         // Referencie al objeto orden
         SynapOrder order=new SynapOrder();
         // Seteo de los datos de orden
@@ -198,8 +210,9 @@ public class MainActivity extends AppCompatActivity {
         order.setCurrency(currency);
         order.setProducts(products);
         order.setCustomer(customer);
-        order.setShipping(shipping);
-        order.setBilling(billing);
+        order.setShipping(shipping); // Opcional
+        order.setBilling(billing); // Opcional
+        order.setMetadata(metadataList); // Opcional
 
         // Referencia al objeto pago
         SynapPayment payment=new SynapPayment();
@@ -223,8 +236,8 @@ public class MainActivity extends AppCompatActivity {
         SynapTransaction transaction=new SynapTransaction();
         // Seteo de los datos de transacción
         transaction.setOrder(order);
-        transaction.setSettings(settings);
         transaction.setPayment(payment);
+        transaction.setSettings(settings);
 
         return transaction;
     }
