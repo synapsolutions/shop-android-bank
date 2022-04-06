@@ -155,12 +155,12 @@ public class MainActivity extends AppCompatActivity {
         address.getLevels().add("150000"); // Código de Área (Ubigeo - Departamento)
         address.getLevels().add("150100"); // Código de Área (Ubigeo - Provincia)
         address.getLevels().add("150101"); // Código de Área (Ubigeo - Distrito)
-        address.setLine1("Ca Carlos Ferreyros 180"); // Dirección
-        address.setZip("15036"); // Código Postal
+        address.setLine1("Av La Solidaridad 103"); // Dirección
+        address.setZip("15034"); // Código Postal
         customer.setAddress(address);
 
         // Seteo del email y teléfono
-        customer.setEmail("javier.perez@synapsolutions.com");
+        customer.setEmail("javier.perez@synapsis.pe");
         customer.setPhone("999888777");
 
         // Referencie al objeto documento del cliente
