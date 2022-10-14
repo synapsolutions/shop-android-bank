@@ -3,23 +3,20 @@ package com.synap.shop;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
 import com.synap.pay.SynapPayButton;
-import com.synap.pay.handler.EventHandler;
 import com.synap.pay.handler.payment.SynapAuthorizeHandler;
 import com.synap.pay.model.payment.SynapAddress;
-import com.synap.pay.model.payment.SynapCardStorage;
 import com.synap.pay.model.payment.SynapCountry;
 import com.synap.pay.model.payment.SynapCurrency;
 import com.synap.pay.model.payment.SynapDocument;
 import com.synap.pay.model.payment.SynapExpiration;
-import com.synap.pay.model.payment.SynapFeatures;
 import com.synap.pay.model.payment.SynapMetadata;
 import com.synap.pay.model.payment.SynapOrder;
 import com.synap.pay.model.payment.SynapPayment;
@@ -30,15 +27,11 @@ import com.synap.pay.model.payment.SynapSettings;
 import com.synap.pay.model.payment.SynapTransaction;
 import com.synap.pay.model.payment.response.SynapAuthorizeResponse;
 import com.synap.pay.model.security.SynapAuthenticator;
-import com.synap.pay.theming.SynapLightTheme;
-import com.synap.pay.theming.SynapTheme;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -218,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         SynapPayment payment=new SynapPayment();
         // Seteo de los datos de procesador
         SynapPaymentCode paymentCode=new SynapPaymentCode();
-        paymentCode.setProcessorCode("KASHIO"); // [ KASHIO, PAGOEFECTIVO ]
+        paymentCode.setProcessorCode("PAGOEFECTIVO"); // [ KASHIO, PAGOEFECTIVO ]
         payment.setPaymentCode(paymentCode);
 
         // Referencie al objeto configuración
@@ -230,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Seteo de la fecha de expiración
         settings.setExpiration(new SynapExpiration());
-        settings.getExpiration().setDate("2022-07-31T23:59:59.000Z"); // Máximo de 6 meses
+        settings.getExpiration().setDate("2022-12-31T23:59:59.000Z"); // Máximo de 6 meses
 
         // Referencie al objeto transacción
         SynapTransaction transaction=new SynapTransaction();
