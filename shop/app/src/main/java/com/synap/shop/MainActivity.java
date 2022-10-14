@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         SynapPayment payment=new SynapPayment();
         // Seteo de los datos de procesador
         SynapPaymentCode paymentCode=new SynapPaymentCode();
-        paymentCode.setProcessorCode("PAGOEFECTIVO"); // [ KASHIO, PAGOEFECTIVO ]
+        paymentCode.setProcessorCode("KASHIO"); // [ KASHIO, PAGOEFECTIVO ]
         payment.setPaymentCode(paymentCode);
 
         // Referencie al objeto configuración
