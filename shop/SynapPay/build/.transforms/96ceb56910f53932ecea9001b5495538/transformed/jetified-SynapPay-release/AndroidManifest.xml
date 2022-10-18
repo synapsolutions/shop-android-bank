@@ -3,9 +3,10 @@
     package="com.synap.pay" >
 
     <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="27" />
+        android:minSdkVersion="18"
+        android:targetSdkVersion="32" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>
