@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SynapPayButton paymentWidget;
     private FrameLayout synapForm;
+    private WebView synapWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
         // Asocie y oculte el contenedor del formulario de pago (FrameLayout), hasta que se ejecute la acción de continuar al pago
         synapForm = findViewById(R.id.synapForm);
         synapForm.setVisibility(View.GONE);
+
+        // Asocie y oculte el contenedor del formulario web (WebView), hasta que se ejecute el proceso de autenticación automáticamente
+        synapWebView = findViewById(R.id.synapWebView);
+        synapWebView.setVisibility(View.GONE);
 
         // Asocie el botón de continuar al pago (Button)
         Button startPayment=findViewById(R.id.startPaymentButton);
@@ -63,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         synapForm.setVisibility(View.VISIBLE);
 
         // Crea el objeto del widget de pago
-        this.paymentWidget=SynapPayButton.createWithBanks(synapForm);
+        this.paymentWidget=SynapPayButton.createWithBanks(synapForm, synapWebView);
 
         // Seteo del ambiente ".SANDBOX" o ".PRODUCTION"
         SynapPayButton.setEnvironment(SynapPayButton.Environment.SANDBOX);
@@ -78,12 +84,15 @@ public class MainActivity extends AppCompatActivity {
                 // Seteo de autenticación de seguridad y transacción
                 authenticator,
                 transaction,
+                synapWebView, // Seteo de WebView de autenticación 3DS
 
                 // Manejo de la respuesta
                 new SynapAuthorizeHandler() {
                     @Override
                     public void success(SynapAuthorizeResponse response) {
-                        Looper.prepare();
+                        if(Looper.myLooper() == null){
+                            Looper.prepare();
+                        }
                         boolean resultSuccess = response.getSuccess();
                         if (resultSuccess) {
                             boolean resultAccepted=response.getResult().getAccepted();
@@ -107,7 +116,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     @Override
                     public void failed(SynapAuthorizeResponse response) {
-                        Looper.prepare();
+                        if(Looper.myLooper() == null){
+                            Looper.prepare();
+                        }
                         String messageText=response.getMessage().getText();
                         // Agregue el código de la experiencia que desee visualizar en un error
                         showMessage(messageText);
@@ -236,17 +247,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private SynapAuthenticator buildAuthenticator(SynapTransaction transaction){
-        String apiKey="ab254a10-ddc2-4d84-8f31-d3fab9d49520"; //"4b099994-a876-4bbd-9ede-3c7115de0b7a"; //"5725e76a-1dd4-448c-8530-f7b1f3eb368b";
+        String apiKey="ab254a10-ddc2-4d84-8f31-d3fab9d49520";
 
         // La signatureKey y la función de generación de firma debe usarse e implementarse en el servidor del comercio utilizando la función criptográfica SHA-512
         // solo con propósito de demostrar la funcionalidad, se implementará en el ejemplo
         // (bajo ninguna circunstancia debe exponerse la signatureKey y la función de firma desde la aplicación porque compromete la seguridad)
-        String signatureKey="eDpehY%YPYgsoludCSZhu*WLdmKBWfAo"; //"Q1nPLoVPn@46cwmduy&%tZUWiLOovstc"; //"DzW/HDawaiwZ@OShFbbAWmcx0c3Aw217";
+        String signatureKey="eDpehY%YPYgsoludCSZhu*WLdmKBWfAo";
 
         // El campo onBehalf es opcional y se usa cuando un comercio agrupa otros sub comercios
         // la conexión con cada sub comercio se realiza con las credenciales del comercio agrupador
         // y enviando el identificador del sub comercio en el campo onBehalf
-        //String onBehalf="cf747220-b471-4439-9130-d086d4ca83d4";
+        // String onBehalf="cf747220-b471-4439-9130-d086d4ca83d4";
 
         String signature=generateSignature(transaction,apiKey,signatureKey);
 
